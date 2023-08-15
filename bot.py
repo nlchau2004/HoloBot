@@ -1,24 +1,29 @@
 """bot.py"""
 import discord
-from dotenv import load_dotenv
+from discord.ext import commands
 import config
 
-load_dotenv()
 TOKEN = config.TOKEN
+intent = discord.Intents.default()
+intent.message_content = True
 
-client = discord.Client(intents=discord.Intents.default())
+bot = commands.Bot(command_prefix='!', intents=intent)
 
-@client.event
+
+@bot.event
 async def on_ready():
     """
-    Notifies client about successful connection to Discord
-    along with servers the bot it's connected to
+    Notifies the terminal whether it's connected to Discord or not
     """
-    for guild in client.guilds:
-        if guild.name == config.GUILD:
-            break
+    print(f'{bot.user.name} is connected to Discord!')
 
-    print(f'{client.user} has connected to Discord!')
-    print(f'{client.user} is connected to {guild.name}: {guild.id}')
 
-client.run(TOKEN)
+@bot.command(name='hi')
+async def hi(ctx):
+    """
+    Prototype function that tests the functionality
+    of HoloBot's messages
+    """
+    await ctx.send('Hi!')
+
+bot.run(TOKEN)
