@@ -17,7 +17,7 @@ def get_streams() -> dict:
     return holo_info.json()
 
 
-def parse(streams: dict, oshi: list) -> dict:
+def parse_streams(streams: dict, oshi: list) -> dict:
     """
     Given a json of the streams and list of followed Vtubers,
     this function parses through the information and returns

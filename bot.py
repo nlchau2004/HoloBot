@@ -1,6 +1,7 @@
 """bot.py"""
 import discord
 from discord.ext import commands
+import api
 import config
 
 TOKEN = config.TOKEN
@@ -18,12 +19,19 @@ async def on_ready():
     print(f'{bot.user.name} is connected to Discord!')
 
 
-@bot.command(name='hi')
-async def hi(ctx):
+@bot.command(name='streams', help="Responds with all upcoming Hololive streams")
+async def all_upcoming_streams(ctx):
     """
-    Prototype function that tests the functionality
-    of HoloBot's messages
+    Sends a message containing all the upcoming streams including:
+    Title
+    Vtuber Name
+    Time
     """
-    await ctx.send('Hi!')
+    streams = api.get_streams()
+    oshi = [s["channel"]["english_name"] for s in streams]
+    upcoming = api.parse_streams(streams, oshi)
+    for vtuber, stream in upcoming.items():
+        await ctx.send(f"{vtuber}: {stream['stream']}")
+
 
 bot.run(TOKEN)
