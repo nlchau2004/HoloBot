@@ -29,7 +29,8 @@ def parse_streams(streams: dict, oshi: list) -> dict:
             upcoming = {
                 "stream": stream["title"],
                 "scheduled_time": stream["start_scheduled"],
-                "link": stream["channel"]["id"]
+                "link": stream["id"],
+                "image": stream["channel"]["photo"]
                 }
             oshi_streams[stream["channel"]["english_name"]].update(upcoming)
     return oshi_streams
