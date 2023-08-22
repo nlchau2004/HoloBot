@@ -18,7 +18,7 @@ class EmbedMessage:
         self.stream = streams[vtuber]
         self.message = None
 
-    def create_message(self) -> None:
+    def create_message(self, author) -> None:
         """
         Creates an embed message and assigns that object to
         the message value
@@ -44,6 +44,8 @@ class EmbedMessage:
         self.message.add_field(
             name="Scheduled Time", value=self.generate_time(self.stream["scheduled_time"])
             )
+
+        self.message.set_footer(text=f"Information requested by: {author}")
 
     def generate_time(self, time: str) -> str:
         """
