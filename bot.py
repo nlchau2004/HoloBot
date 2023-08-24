@@ -33,7 +33,7 @@ async def anystreams(ctx):
         description="Displays all upcoming/current Hololive streams"
         )
 
-    msg.add_field(name="Format", value="$anystreams <limit> [default = 5]")
+    msg.add_field(name="Format", value="$anystreams <limit> [default = 5, upper limit = 20]")
 
     await ctx.send(embed=msg)
 
@@ -44,7 +44,7 @@ async def stream(ctx):
     """
     msg = discord.Embed(
         title="$stream",
-        description="Displays upcoming/current streams of Hololive Vtuber"
+        description="Displays upcoming/current streams of a specific Hololive Vtuber"
         )
 
     msg.add_field(name="Format", value="$stream <vtuber>")
@@ -54,7 +54,7 @@ async def stream(ctx):
 @bot.event
 async def on_ready():
     """
-    Notifies the terminal whether it's connected to Discord or not
+    Message to confirm that HoloBot has connected to Discord
     """
     print(f'{bot.user.name} is connected to Discord!')
 
@@ -77,6 +77,9 @@ async def all_streams(ctx, limit=5):
     Title
     Vtuber Name
     Time
+
+    The default limit of streams is 5, while the upper limit is 20
+    (This may be subject to change in the future)
     """
 
     try:
@@ -89,20 +92,31 @@ async def all_streams(ctx, limit=5):
             message = embed.EmbedMessage(vtuber, upcoming)
             message.create_message(ctx.author.display_name)
             await ctx.send(embed=message.message)
+        await ctx.send(f"Here you go {ctx.message.author.mention}!")
     except AssertionError:
         await ctx.send("Woah! Too many streams at one time!")
 
 @bot.command(
         name='stream',
         )
-async def vtuber_streams(ctx, vtuber:str):
+async def vtuber_streams(ctx, vtuber:str=None):
     """
     Unlike all_streams, this will only return streams from a given Hololive Vtuber
+    
+    User must provide a specific Vtuber
     """
+    if not isinstance(vtuber, str):
+        raise discord.ext.commands.errors.BadArgument
+
     streams = api.get_streams()
     upcoming = api.parse_streams(streams, [vtuber])
     message = embed.EmbedMessage(vtuber, upcoming)
     message.create_message(ctx.author.display_name)
     await ctx.send(embed=message.message)
+    await ctx.send(f"Here you go {ctx.message.author.mention}!")
 
-bot.run(TOKEN)
+def run_bot():
+    """
+    Runs the discord bot
+    """
+    bot.run(TOKEN)

@@ -42,7 +42,7 @@ class EmbedMessage:
         )
 
         self.message.add_field(
-            name="Scheduled Time", value=self.generate_time(self.stream["scheduled_time"])
+            name="Scheduled Time (UTC)", value=self.generate_time(self.stream["scheduled_time"])
             )
 
         self.message.set_footer(text=f"Information requested by: {author}")
@@ -51,6 +51,8 @@ class EmbedMessage:
         """
         Given a string of raw time, the method will convert
         the raw input into a sensible unit of time
+
+        Time is in UTC
         """
         time = datetime.fromisoformat(self.stream["scheduled_time"][:-1]).astimezone(timezone.utc)
         return time
