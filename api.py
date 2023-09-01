@@ -1,4 +1,5 @@
 """api.py"""
+import json
 import requests
 import config
 
@@ -34,3 +35,8 @@ def parse_streams(streams: dict, oshi: list) -> dict:
                 }
             oshi_streams[stream["channel"]["english_name"]].update(upcoming)
     return oshi_streams
+
+def get_channels() -> dict:
+    with open("holoinfo/holomem.json", "r") as infile:
+        holomems = json.load(infile)
+    return holomems

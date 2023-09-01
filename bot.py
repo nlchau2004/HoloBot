@@ -1,8 +1,8 @@
 """bot.py"""
+import os
 import discord
 from discord.ext import commands
-import embed
-import api
+from pymongo import MongoClient
 import config
 
 TOKEN = config.TOKEN
@@ -12,6 +12,17 @@ intent.message_content = True
 bot = commands.Bot(command_prefix='$', intents=intent)
 bot.remove_command("help")
 
+client = MongoClient(config.MONGODB)
+db = client.user_oshi
+
+async def load():
+    """
+    Loads commands from the commands folder
+    """
+    for filename in os.listdir("./commands"):
+        if filename.endswith(".py"):
+            await bot.load_extension(f"commands.{filename[:-3]}")
+
 @bot.group(invoke_without_command=True)
 async def help(ctx):
     """
@@ -19,7 +30,8 @@ async def help(ctx):
     """
     msg = discord.Embed(title="HELP", description="Use $help <command> for extended details")
 
-    msg.add_field(name="Commands", value="anystreams, stream")
+    msg.add_field(name="General", value="anystreams, stream")
+    msg.add_field(name="Oshi", value="oshiadd, oshidel, oshilist, oshistreams")
 
     await ctx.send(embed=msg)
 
@@ -51,6 +63,62 @@ async def stream(ctx):
 
     await ctx.send(embed=msg)
 
+@help.command()
+async def oshiadd(ctx):
+    """
+    Brief description of the functionality and usage of $oshiadd
+    """
+    msg = discord.Embed(
+        title="$oshiadd",
+        description="Adds one of your oshi into your personal list"
+        )
+
+    msg.add_field(name="Format", value="$oshiadd <vtuber>")
+
+    await ctx.send(embed=msg)
+
+@help.command()
+async def oshidel(ctx):
+    """
+    Brief description of the functionality and usage of $oshidel
+    """
+    msg = discord.Embed(
+        title="$oshidel",
+        description="Deletes one of your oshi from your personal list"
+        )
+
+    msg.add_field(name="Format", value="$oshidel <vtuber>")
+
+    await ctx.send(embed=msg)
+
+@help.command()
+async def oshilist(ctx):
+    """
+    Brief description of the functionality and usage of $oshilist
+    """
+    msg = discord.Embed(
+        title="$oshilist",
+        description="Displays all of your saved oshi"
+        )
+
+    msg.add_field(name="Format", value="$oshilist")
+
+    await ctx.send(embed=msg)
+
+@help.command()
+async def oshistreams(ctx):
+    """
+    Brief description of the functionality and usage of $oshistreams
+    """
+    msg = discord.Embed(
+        title="$oshistreams",
+        description="Displays upcoming/current streams of your oshi"
+        )
+
+    msg.add_field(name="Format", value="$oshisteams")
+
+    await ctx.send(embed=msg)
+
 @bot.event
 async def on_ready():
     """
@@ -58,65 +126,10 @@ async def on_ready():
     """
     print(f'{bot.user.name} is connected to Discord!')
 
-@bot.event
-async def on_command_error(ctx, error):
+async def main():
     """
-    Triggers when an error occurs during a command
+    Loads and starts the discord bot
     """
-    if isinstance(error, discord.ext.commands.errors.CommandNotFound):
-        await ctx.send("That command wasn't found! Sorry :(")
-    elif isinstance(error, discord.ext.commands.errors.BadArgument):
-        await ctx.send("Invalid argument, please try again")
-
-@bot.command(
-        name='anystreams',
-        )
-async def all_streams(ctx, limit=5):
-    """
-    Sends a message containing all the upcoming streams including:
-    Title
-    Vtuber Name
-    Time
-
-    The default limit of streams is 5, while the upper limit is 20
-    (This may be subject to change in the future)
-    """
-
-    try:
-        assert limit < 20
-        streams = api.get_streams()
-        oshi = [s["channel"]["english_name"] for s in streams]
-        upcoming = api.parse_streams(streams, oshi)
-        for i in range(limit):
-            vtuber = oshi[i]
-            message = embed.EmbedMessage(vtuber, upcoming)
-            message.create_message(ctx.author.display_name)
-            await ctx.send(embed=message.message)
-        await ctx.send(f"Here you go {ctx.message.author.mention}!")
-    except AssertionError:
-        await ctx.send("Woah! Too many streams at one time!")
-
-@bot.command(
-        name='stream',
-        )
-async def vtuber_streams(ctx, vtuber:str=None):
-    """
-    Unlike all_streams, this will only return streams from a given Hololive Vtuber
-    
-    User must provide a specific Vtuber
-    """
-    if not isinstance(vtuber, str):
-        raise discord.ext.commands.errors.BadArgument
-
-    streams = api.get_streams()
-    upcoming = api.parse_streams(streams, [vtuber])
-    message = embed.EmbedMessage(vtuber, upcoming)
-    message.create_message(ctx.author.display_name)
-    await ctx.send(embed=message.message)
-    await ctx.send(f"Here you go {ctx.message.author.mention}!")
-
-def run_bot():
-    """
-    Runs the discord bot
-    """
-    bot.run(TOKEN)
+    async with bot:
+        await load()
+        await bot.start(TOKEN)
